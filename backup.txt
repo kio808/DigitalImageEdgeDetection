@@ -1,0 +1,179 @@
+import cv2
+import numpy as np
+
+import time
+# Read the original image
+img = cv2.imread('10378780_15.tiff')
+
+# Display original image
+cv2.imshow('Original', img)
+cv2.waitKey(1)
+
+# Convert to grayscale
+img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+cv2.imshow('Grayscale', img_gray)
+cv2.waitKey(1)
+
+# Blur the image for better edge detection
+img_blur = cv2.GaussianBlur(img_gray, (3,3), 0)
+cv2.imshow('Blur', img_blur)
+cv2.waitKey(1)
+
+# Sobel Edge Detection
+sobelx = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5) # Sobel Edge Detection on the X axis
+sobely = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5) # Sobel Edge Detection on the Y axis
+sobelxy = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5) # Combined X and Y Sobel Edge Detection
+
+sobelnog = cv2.Sobel(src=img_gray, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5)
+
+# Display Sobel Edge Detection Images
+cv2.imshow('Sobel X Y using Sobel() function with Gaussian', sobelxy)
+cv2.waitKey(1)
+
+cv2.imshow('Sobel X Y using Sobel() function without Gaussian', sobelnog)
+cv2.waitKey(1)
+
+# Canny Edge Detection
+CE_time = time.time()
+
+edges = cv2.Canny(image=img_blur, threshold1=100, threshold2=200) # Canny Edge Detection
+
+edgesNoG = cv2.Canny(image=img_gray, threshold1=100, threshold2=200)
+# Display Canny Edge Detection Image
+cv2.imshow('Canny Edge Detection with Gaussian', edges)
+cv2.waitKey(1)
+
+cv2.imshow('Canny Edge Detection with no Gaussian', edgesNoG)
+print("--- Canny Edge: %s ---" % (time.time() - CE_time))
+cv2.waitKey(0)
+
+
+#Prewitt
+Prewitt_time = time.time()
+
+prewittx = np.array([[1,1,1],[0,0,0],[-1,-1,-1]])
+prewitty = np.array([[-1,0,1],[-1,0,1],[-1,0,1]])
+img_prewittx = cv2.filter2D(img_blur, -1, prewittx)
+img_prewittxy = cv2.filter2D(img_prewittx, -1, prewitty)
+
+img_prewittxNoG = cv2.filter2D(img_gray, -1, prewittx)
+img_prewittxyNoG = cv2.filter2D(img_prewittxNoG, -1, prewitty)
+
+
+cv2.imshow('Prewitt XY with Gaussian', img_prewittxy)
+cv2.waitKey(1)
+
+cv2.imshow('Prewitt XY with no Gaussian', img_prewittxyNoG)
+print("--- Prewitt Edge: %s ---" % (time.time() - Prewitt_time))
+
+cv2.waitKey(0)
+
+
+#SOBEL WITHOUT PLUGINS
+Sobel_time = time.time()
+
+
+MySobelX = np.array ([[-1,-2,-1], [0,0,0], [1,2,1]])
+MySobelY = np.array ([[-1,0,1], [-2,0,2], [-1,0,1]])
+
+myx = cv2.filter2D(img_blur, -1, MySobelX)
+myxy = cv2.filter2D(myx, -1, MySobelY)
+
+myxNoG = cv2.filter2D(img_gray, -1, MySobelX)
+myxyNoG = cv2.filter2D(myxNoG, -1, MySobelY)
+
+cv2.imshow('MYSOBEL with Gaussian', myxy)
+cv2.waitKey(1)
+
+cv2.imshow('MYSOBEL with no Gaussian', myxyNoG)
+
+print("--- Sobel Edge: %s ---" % (time.time() - Sobel_time))
+
+cv2.waitKey(0)
+
+# # MY CANNY EDGE
+# CannyEdge = np.array([[2, 4, 5, 4, 2], [4, 9, 12, 9, 4], [5, 12, 15, 12, 5], [4, 9, 12, 9, 4], [2, 4, 5, 4, 2]])
+#
+# CE = cv2.filter2D(img_blur, -1, CannyEdge)
+# CENoG = cv2.filter2D(img_gray, -1, CannyEdge)
+#
+# cv2.imshow('MYCE with Gaussian', CE)
+# cv2.waitKey(1)
+#
+# cv2.imshow('MYCE with no Gaussian', CENoG)
+# cv2.waitKey(0)
+
+# LAPLACIAN
+Laplacian_time = time.time()
+
+LaplacianLight = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]])
+LaplacianHeavy = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
+
+LL = cv2.filter2D(img_blur, -1, LaplacianLight)
+LH = cv2.filter2D(img_blur, -1, LaplacianHeavy)
+
+LLALH = cv2.filter2D(LL, -1, LaplacianHeavy)
+
+
+LLNoG = cv2.filter2D(img_gray, -1, LaplacianLight)
+LHNoG = cv2.filter2D(img_gray, -1, LaplacianHeavy)
+
+cv2.imshow('Laplacian Light', LL)
+cv2.waitKey(1)
+
+cv2.imshow('Laplacian Heavy', LH)
+cv2.waitKey(1)
+
+cv2.imshow('Laplacian Combined', LLALH)
+cv2.waitKey(1)
+
+cv2.imshow('Laplacian Light no Gaussian', LLNoG)
+cv2.waitKey(1)
+
+cv2.imshow('Laplacian Heavy no Gaussian', LHNoG)
+
+print("--- Laplacian: %s ---" % (time.time() - Laplacian_time))
+
+cv2.waitKey(0)
+
+#ROBERTS CROSS
+Robert_time = time.time()
+
+RobertX = np.array([[1,0], [0,-1]])
+RobertY = np.array([[0,1], [-1,0]])
+
+ImgX = cv2.filter2D(img_blur, -1, RobertX)
+ImgXY = cv2.filter2D(ImgX, -1, RobertY)
+
+ImgXNoG = cv2.filter2D(img_gray, -1, RobertX)
+ImgXYNoG = cv2.filter2D(ImgXNoG, -1, RobertY)
+
+cv2.imshow('Robert Cross with Gaussian', ImgXY)
+cv2.waitKey(1)
+
+cv2.imshow('Robert Cross with no Gaussian', ImgXYNoG)
+
+print("--- Robert: %s ---" % (time.time() - Robert_time))
+
+cv2.waitKey(0)
+
+#DIFFERENTIAL
+Differential = np.array([[-1/4, 0, -1/4], [0, 0, 0], [1/4, 0, -1/4]])
+DOutput = cv2.filter2D(img_blur, -1, Differential)
+DOutputNoG = cv2.filter2D(img_gray, -1, Differential)
+
+cv2.imshow('Differential with Gaussian', DOutput)
+cv2.waitKey(1)
+
+cv2.imshow('Differential with no Gaussian', DOutputNoG)
+cv2.waitKey(0)
+
+
+CannyAndLL = cv2.filter2D(edges, -1, LaplacianLight)
+cv2.imshow('CANNY AND LL', CannyAndLL)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# print("--- %s seconds ---" % (time.time() - start_time))
+
